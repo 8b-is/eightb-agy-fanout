@@ -10,7 +10,7 @@ pub const MAX_TASKS: usize = 64;
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum OpCode {
-    Heartbeat    = 0x01,
+    Heartbeat = 0x01,
     TaskDispatch = 0x02,
     TaskComplete = 0x03,
     KvmHidInject = 0x04,
@@ -132,6 +132,9 @@ impl LanFrame64 {
 }
 
 /// 4-way unrolled SWAR popcount over 64-bit words.
+// `as_chunks` remains behind a toolchain gate on some targets; `chunks_exact`
+// stays stable everywhere while the 4-way unroll is what matters for ILP.
+#[allow(clippy::chunks_exact_to_as_chunks)]
 #[inline]
 pub fn swar_popcount_slice(words: &[u64]) -> u64 {
     let mut total = 0u64;
@@ -253,9 +256,9 @@ mod tests {
     #[test]
     fn test_dag_parallel_fanout_waves() {
         let mut dag = BitmaskDag::new();
-        dag.add_task(0, 0);                 // Wave 1: cleaner
-        dag.add_task(1, 1 << 0);            // Wave 2: analyzer
-        dag.add_task(2, 1 << 0);            // Wave 2: visualizer
+        dag.add_task(0, 0); // Wave 1: cleaner
+        dag.add_task(1, 1 << 0); // Wave 2: analyzer
+        dag.add_task(2, 1 << 0); // Wave 2: visualizer
         dag.add_task(3, (1 << 1) | (1 << 2)); // Wave 3: writer
 
         let w1 = dag.runnable_wave();
@@ -272,5 +275,73 @@ mod tests {
         // Wave 3 unblocks writer
         let w3 = dag.runnable_wave();
         assert_eq!(w3, 0b1000);
+    }
+
+    #[test]
+    fn test_swar_popcount_matches_reference() {
+        let words = [0u64, 1, u64::MAX, 0x0F0F_0F0F_0F0F_0F0F, 0b1011];
+        let expect: u64 = words.iter().map(|w| w.count_ones() as u64).sum();
+        assert_eq!(swar_popcount_slice(&words), expect);
+        assert_eq!(swar_popcount_slice(&[]), 0);
+    }
+
+    #[test]
+    fn test_frame_rejects_tampered_fold_and_bad_fields() {
+        #[repr(align(64))]
+        struct Aligned([u8; 64]);
+
+        let frame = LanFrame64::new(OpCode::Heartbeat, 0, 0, 7);
+        let mut a = Aligned([0u8; 64]);
+        a.0.copy_from_slice(frame.as_bytes());
+        assert!(LanFrame64::try_from_bytes(&a.0).is_ok());
+
+        // Flip an integrity-relevant payload bit -> integrity mismatch.
+        a.0[40] ^= 0x01;
+        assert_eq!(
+            LanFrame64::try_from_bytes(&a.0),
+            Err(FrameError::IntegrityMismatch)
+        );
+
+        // Restore, then break the gate.
+        a.0[40] ^= 0x01;
+        a.0[2] = 0x00;
+        assert_eq!(
+            LanFrame64::try_from_bytes(&a.0),
+            Err(FrameError::InvalidGate)
+        );
+
+        // Restore gate, break magic.
+        a.0[2] = GATE_BYTE;
+        a.0[0] = 0x00;
+        assert_eq!(
+            LanFrame64::try_from_bytes(&a.0),
+            Err(FrameError::InvalidMagic)
+        );
+
+        // Short buffer.
+        a.0[0] = (FRAME_MAGIC & 0xFF) as u8;
+        assert_eq!(
+            LanFrame64::try_from_bytes(&a.0[..10]),
+            Err(FrameError::BufferTooShort)
+        );
+    }
+
+    #[test]
+    fn test_hid_reports() {
+        assert_eq!(
+            HidKeyboardReport::key_down(0x02, 0x04),
+            [0x02, 0, 0x04, 0, 0, 0, 0, 0]
+        );
+        assert_eq!(HidKeyboardReport::release(), [0u8; 8]);
+    }
+
+    #[test]
+    fn test_add_task_out_of_range_is_ignored() {
+        let mut dag = BitmaskDag::new();
+        dag.add_task(MAX_TASKS, 0); // 64 -> out of range, ignored
+        assert_eq!(dag.valid, 0);
+        dag.add_task(63, 0);
+        assert_eq!(dag.valid, 1u64 << 63);
+        assert_eq!(dag.runnable_wave(), 1u64 << 63);
     }
 }

@@ -40,7 +40,10 @@ fn run_udp_daemon(bind_addr: &str) {
     socket
         .set_read_timeout(Some(Duration::from_millis(500)))
         .ok();
-    println!("8b-agy LAN worker listening on UDP {} (64B aligned frames)", bind_addr);
+    println!(
+        "8b-agy LAN worker listening on UDP {} (64B aligned frames)",
+        bind_addr
+    );
 
     let mut aligned_buf = LanFrame64::new(OpCode::Heartbeat, 0, 0, 0);
     loop {
