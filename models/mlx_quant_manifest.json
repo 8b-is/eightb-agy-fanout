@@ -1,0 +1,113 @@
+{
+  "constellation": "eightb-agy-fanout",
+  "version": "0.2.0",
+  "gate_byte": "0x62",
+  "frame_magic": "0x8B15",
+  "ollama_router": {
+    "endpoint": "http://127.0.0.1:11434",
+    "router_model": "8b-agy-router:latest",
+    "fallback_decision_model": "kev:latest",
+    "udp_daemon_bind": "0.0.0.0:18815"
+  },
+  "primary_heretic_subagent": {
+    "subagent_name": "deepseek-v4-pro-qwen35-heretic",
+    "hf_repo": "xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic",
+    "hf_url": "https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic",
+    "base_model": "Jackrong/DeepSeek-V4-Pro-Qwen3.5-9B",
+    "gguf_repo": "mradermacher/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-GGUF",
+    "ollama_tag": "deepseek-v4-pro-qwen3.5-9b-heretic:latest",
+    "architecture": "Qwen3_5ForConditionalGeneration",
+    "num_hidden_layers": 32,
+    "linear_gdn_layers": 24,
+    "full_attention_layers": 8,
+    "mtp_num_hidden_layers": 1,
+    "hidden_size": 4096,
+    "intermediate_size": 12288,
+    "head_dim": 256,
+    "max_position_embeddings": 262144,
+    "mlx_quant_profiles": [
+      {
+        "scheme": "nvfp4",
+        "bits": 4,
+        "group_size": 64,
+        "compression_ratio_pq": "4/1",
+        "litany_wire_seal16": "0x019f",
+        "litany_wire_verified": true,
+        "spqt_root_base243": [149, 233, 212],
+        "output_path": ".mlx/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-nvfp4-g64"
+      },
+      {
+        "scheme": "mxfp8",
+        "bits": 8,
+        "group_size": 64,
+        "compression_ratio_pq": "2/1",
+        "litany_wire_seal16": "0x0189",
+        "litany_wire_verified": true,
+        "spqt_root_base243": [131, 233, 212],
+        "output_path": ".mlx/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-mxfp8-g64"
+      }
+    ]
+  },
+  "fanout_models": [
+    {
+      "worker_id": 0,
+      "name": "deepseek-v4-pro-qwen35-heretic",
+      "hf_repo": "xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic",
+      "ollama_tag": "deepseek-v4-pro-qwen3.5-9b-heretic:latest",
+      "mlx_scheme": "nvfp4",
+      "compression_pq": "4/1",
+      "ctx_tokens": 262144,
+      "role": "HereticReasoningSubagent"
+    },
+    {
+      "worker_id": 1,
+      "name": "qwen4-exp-8b-obliterated-abliterated-kompress-ultra",
+      "hf_repo": "PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra",
+      "ollama_tag": "qwen3.6-fast:latest",
+      "mlx_scheme": "nvfp4",
+      "compression_pq": "4/1",
+      "ctx_tokens": 262144,
+      "role": "PrimarySotaCodegen"
+    },
+    {
+      "worker_id": 2,
+      "name": "8b-agy-router",
+      "hf_repo": "8b-is/eightb-agy-fanout",
+      "ollama_tag": "8b-agy-router:latest",
+      "mlx_scheme": "mxfp8",
+      "compression_pq": "2/1",
+      "ctx_tokens": 262144,
+      "role": "OllamaWaveRouter"
+    },
+    {
+      "worker_id": 3,
+      "name": "kev-decision-engine",
+      "hf_repo": "8b-is/kev-7.9b-nvfp4",
+      "ollama_tag": "kev:latest",
+      "mlx_scheme": "nvfp4",
+      "compression_pq": "4/1",
+      "ctx_tokens": 73728,
+      "role": "FastDecisionClassifier"
+    },
+    {
+      "worker_id": 4,
+      "name": "qwen3.6-35b-a3b-coding",
+      "hf_repo": "Qwen/Qwen3.6-35B-A3B-Coding",
+      "ollama_tag": "qwen3.6:35b-a3b-coding-nvfp4",
+      "mlx_scheme": "nvfp4",
+      "compression_pq": "4/1",
+      "ctx_tokens": 131072,
+      "role": "HeavyMoECodingVerifier"
+    },
+    {
+      "worker_id": 5,
+      "name": "bonsai-vision-kvm",
+      "hf_repo": "8b-is/bonsai-vision-27b",
+      "ollama_tag": "bonsai-vision:latest",
+      "mlx_scheme": "affine",
+      "compression_pq": "8/1",
+      "ctx_tokens": 262144,
+      "role": "MultimodalKvmVision"
+    }
+  ]
+}

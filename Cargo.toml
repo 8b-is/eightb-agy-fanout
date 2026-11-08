@@ -1,9 +1,11 @@
 [package]
 name = "eightb-agy-fanout"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-description = "Zero-alloc LAN fan-out DAG scheduler and RustyNanoKVM HID bridge for Antigravity CLI"
+description = "Zero-alloc LAN fan-out DAG scheduler, Ollama Wave Router, Apple Silicon MLX-quant bridge, and RustyNanoKVM HID engine for Antigravity CLI"
 license = "MIT"
+repository = "https://codeberg.org/8b-is/eightb-agy-fanout"
+homepage = "https://github.com/8b-is/eightb-agy-fanout"
 
 [lib]
 name = "eightb_agy_fanout"

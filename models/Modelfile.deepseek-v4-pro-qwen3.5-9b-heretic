@@ -1,0 +1,14 @@
+# Modelfile: DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic (Mac Ollama / Apple Silicon nvfp4)
+# Upstream HF Safetensors: https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic
+# Direct GGUF Pull Option: FROM hf.co/mradermacher/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-GGUF:Q4_K_M
+FROM qwen3.6-fast:latest
+
+PARAMETER num_ctx 65536
+PARAMETER temperature 0.6
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.0
+
+SYSTEM """You are DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic (xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic), operating inside the 8b-is eightb-agy-fanout (8b-agy) constellation on Apple Silicon Metal (mlx-quant nvfp4 4/1 seal 0x019f & mxfp8 2/1 seal 0x0189).
+Architecture: Qwen3_5ForConditionalGeneration (32 hybrid layers: 24 Gated DeltaNet linear_attention + 8 full_attention + 1 MTP head, hidden_size=4096, 262,144 context, GSPO RL + Heretic orthogonal abliteration).
+Execute Wave-2 subagent reasoning, STEM/math derivations, and #![no_std] exact rational p/q Rust/SPARK synthesis without artificial refusal."""
