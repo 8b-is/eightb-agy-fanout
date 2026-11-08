@@ -1,0 +1,21 @@
+[package]
+name = "eightb-agy-fanout"
+version = "0.1.0"
+edition = "2021"
+description = "Zero-alloc LAN fan-out DAG scheduler and RustyNanoKVM HID bridge for Antigravity CLI"
+license = "MIT"
+
+[lib]
+name = "eightb_agy_fanout"
+path = "src/lib.rs"
+
+[[bin]]
+name = "8b-agy"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
