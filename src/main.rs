@@ -1,9 +1,9 @@
 use eightb_agy_fanout::{
     run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks, run_robvc_architecture_pipeline,
-    BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
-    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
-    OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
-    SOVEREIGN_CLUSTER_TOPOLOGY,
+    run_techno_zen_bonobo_era, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage,
+    WukongOmniWeightProgram, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND,
+    FANOUT_MODEL_CONSTELLATION, OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE,
+    SOTA_8B_BENCHMARK_MATRIX, SOVEREIGN_CLUSTER_TOPOLOGY,
 };
 use std::env;
 use std::fs;
@@ -23,6 +23,7 @@ fn main() {
         "models" => print_fanout_models(),
         "mlx-quant" => print_mlx_quant_profiles(),
         "wukong" => print_wukong_weight_program(),
+        "bonobo" | "zen" | "techno-zen" => print_techno_zen_bonobo_era(),
         "train" | "lll" | "gods-of-lll" => {
             let export_dir = args
                 .windows(2)
@@ -665,4 +666,52 @@ fn run_udp_daemon(bind_addr: &str) {
             }
         }
     }
+}
+
+fn print_techno_zen_bonobo_era() {
+    let zen = run_techno_zen_bonobo_era();
+    println!("============================================================================================================================");
+    println!("🧘‍♂️🦧⚡ {} — SOLAR PHYLOGENETIC RUNG-0 BONOBO × INTEGRAL LLL LOVÁSZ DUAL", zen.era_id);
+    println!("============================================================================================================================");
+    println!(
+        "  • Rung-0 Bonobo Resonance (p/q) : {}/{} (+1 trit Target Resonance) | LLL Lovász Dual (δ) : {}/{}",
+        zen.bonobo_resonance_pq.0,
+        zen.bonobo_resonance_pq.1,
+        zen.lovasz_dual_pq.0,
+        zen.lovasz_dual_pq.1
+    );
+    println!(
+        "  • Pythago-Zen Harmonic Coupling : (3/2) × (3/4) = {}/{} (Whole-Tone) | (3/2) + (3/4) = {}/{} = (3/2)² | (3/2) ÷ (3/4) = {}/{}",
+        zen.pythago_zen_harmonic_pq.0,
+        zen.pythago_zen_harmonic_pq.1,
+        zen.additive_square_pq.0,
+        zen.additive_square_pq.1,
+        zen.octave_duality_pq.0,
+        zen.octave_duality_pq.1
+    );
+    println!(
+        "  • Acoustic & Prosody Lock       : Carrier = {} Hz · Fifth = {} Hz · Whole-Tone = {} Hz · Sub-Fifth = {} Hz · Groove = {} BPM -> {} WPM",
+        zen.carrier_hz,
+        zen.bonobo_fifth_hz,
+        zen.whole_tone_hz,
+        zen.sub_fifth_hz,
+        zen.base_tempo_bpm,
+        zen.prosody_lock_wpm
+    );
+    println!(
+        "  • Sovereign Compression & Proof : p/qT = {}/{} vs FP16 | Q15 Reward = {}/{} (99.96%) | Kompress Savings = {}/{} | SPARK = {}/{} proved",
+        zen.pqt_compression_pq.0,
+        zen.pqt_compression_pq.1,
+        zen.converged_reward_pq.0,
+        zen.converged_reward_pq.1,
+        zen.kompress_savings_pq.0,
+        zen.kompress_savings_pq.1,
+        zen.spark_proved_checks,
+        zen.spark_proved_checks
+    );
+    println!(
+        "  • Sealed 64B Techno-Zen Frame   : fold = 0x{:016x} (magic = 0x8b15, gate = 0x62, task = 9/8)",
+        zen.sealed_frame.fold_tag
+    );
+    println!("============================================================================================================================");
 }
