@@ -1,7 +1,8 @@
 use eightb_agy_fanout::{
-    run_hardware_kernel_benchmarks, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode,
-    WukongOmniWeightProgram, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND,
-    FANOUT_MODEL_CONSTELLATION, OLLAMA_LOCAL_FLEET, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
+    run_hardware_kernel_benchmarks, run_robvc_architecture_pipeline, BitmaskDag, LanFrame64,
+    OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
+    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
+    OLLAMA_LOCAL_FLEET, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX, SOVEREIGN_CLUSTER_TOPOLOGY,
 };
 use std::env;
 use std::net::UdpSocket;
@@ -19,6 +20,15 @@ fn main() {
         "models" => print_fanout_models(),
         "mlx-quant" => print_mlx_quant_profiles(),
         "wukong" => print_wukong_weight_program(),
+        "arch" | "robvc" | "cluster" => {
+            let prompt = if args.len() > 2 {
+                args[2..].join(" ")
+            } else {
+                "Prove #![no_std] Q15 GRPO advantage in Ada 2022 SPARK on Qwen4-Exp with 4-Role Semantic Fold"
+                    .to_string()
+            };
+            print_robvc_architecture(&prompt);
+        }
         "bench" | "benchmark" => {
             let json_mode = args.iter().any(|s| s == "--json");
             let iters = args
@@ -143,6 +153,82 @@ fn print_wukong_weight_program() {
         wp.packed_base243_block, wp.harmonic_witness, frame.fold_tag
     );
     println!("  • Active 14-Model Mac Ollama Fleet : {:?}", OLLAMA_LOCAL_FLEET);
+}
+
+fn print_robvc_architecture(prompt: &str) {
+    let report = run_robvc_architecture_pipeline(prompt);
+    println!("============================================================================================================================");
+    println!("8b-agy v0.3.0 — ROUTER-ORCHESTRATOR-BUILDER-VERIFIER-COMPRESSOR (ROBV-C) ARCHITECTURE");
+    println!("  Primary 8B SOTA : https://huggingface.co/PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra");
+    println!("  Heretic Subagent: https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic");
+    println!("  Fold Engine     : https://github.com/8b-is/kompress-super-ultra (127.0.0.1:8799)");
+    println!("============================================================================================================================");
+    println!(
+        "SOVEREIGN LOCAL CLUSTER TOPOLOGY ({}/{} SERVICES ONLINE · mask = {:#08b})",
+        report.online_nodes,
+        SOVEREIGN_CLUSTER_TOPOLOGY.len(),
+        report.online_cluster_mask
+    );
+    for (idx, node) in SOVEREIGN_CLUSTER_TOPOLOGY.iter().enumerate() {
+        let online = (report.online_cluster_mask & (1u8 << idx)) != 0;
+        let badge = if online { "ONLINE " } else { "OFFLINE" };
+        println!(
+            "  [{}] {:<22} @ {:<16} | {:<58} | {}",
+            badge,
+            node.service_id,
+            node.bind_addr,
+            node.stage.as_str(),
+            node.repo_url
+        );
+    }
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!("5-STAGE ROBV-C PIPELINE EXECUTION TRACE:");
+    println!(
+        "  • {} -> domain={} worker={} ({}) score={}/{} Q15",
+        RobvcStage::Router.as_str(),
+        report.route_decision.domain.as_str(),
+        report.route_decision.model.worker_id,
+        report.route_decision.model.ollama_tag,
+        report.route_decision.score_q15,
+        Q15_SCALE
+    );
+    println!(
+        "  • {} -> waves=[{:#07b}, {:#07b}, {:#07b}] (omni-todos task e84df86e-b96c-4802-b2df-993a6f5bdf11 @ p/q=3/2)",
+        RobvcStage::Orchestrator.as_str(),
+        report.dag_waves[0],
+        report.dag_waves[1],
+        report.dag_waves[2]
+    );
+    println!(
+        "  • {} -> {{<3,<3,<3}}+1 p/qT={}/{} resonance={}/{} Q15 SWE={}/{} MATH={}/{} AIME={}/{}",
+        RobvcStage::Builder.as_str(),
+        report.wukong_program.pqt_compression_p,
+        report.wukong_program.pqt_compression_q,
+        report.wukong_program.pqt_resonance_q15,
+        Q15_SCALE,
+        report.wukong_program.swe_verified_p,
+        report.wukong_program.swe_verified_q,
+        report.wukong_program.math500_p,
+        report.wukong_program.math500_q,
+        report.wukong_program.aime_p,
+        report.wukong_program.aime_q
+    );
+    println!(
+        "  • {} -> Ada 2022 / SPARK gnatprove = {}/{} proved | LanFrame64 fold = 0x{:016x}",
+        RobvcStage::Verifier.as_str(),
+        report.spark_proved_checks,
+        report.spark_proved_checks,
+        report.pipeline_frame.fold_tag
+    );
+    println!(
+        "  • {} -> 4-Role Semantic Fold: {} -> {} tokens (canonical p/q = {}/{})",
+        RobvcStage::Compressor.as_str(),
+        report.kompress_original_tokens,
+        report.kompress_folded_tokens,
+        report.kompress_ratio_pq.0,
+        report.kompress_ratio_pq.1
+    );
+    println!("============================================================================================================================");
 }
 
 fn run_sota_and_hardware_benchmarks(iters: u64) {

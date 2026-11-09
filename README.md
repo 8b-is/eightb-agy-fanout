@@ -1,34 +1,55 @@
-# `eightb-agy-fanout` (`8b-agy` v0.2.0)
+# `eightb-agy-fanout` (`8b-agy` v0.3.0)
 
 [![Forge: Codeberg](https://img.shields.io/badge/Codeberg-8b--is%2Feightb--agy--fanout-2185D0?logo=codeberg)](https://codeberg.org/8b-is/eightb-agy-fanout)
 [![Forge: GitHub](https://img.shields.io/badge/GitHub-8b--is%2Feightb--agy--fanout-181717?logo=github)](https://github.com/8b-is/eightb-agy-fanout)
 [![Heretic Subagent](https://img.shields.io/badge/HF-xtools--at%2FDeepSeek--V4--Pro--Qwen3.5--9B--UNCENSORED--heretic-FFD21E)](https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic)
 [![Qwen4-Exp SOTA](https://img.shields.io/badge/HF-PeetPedro%2Fqwen4__exp--8b--obliterated--abliterated--kompress--ultra-FF6F00)](https://huggingface.co/PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra)
+[![Kompress Super Ultra](https://img.shields.io/badge/GitHub-8b--is%2Fkompress--super--ultra-00E660)](https://github.com/8b-is/kompress-super-ultra)
 
-**Zero-allocation single-register 64-bit DAG fan-out scheduler (`BitmaskDag`), Ollama Wave Router (`8b-agy-router:latest`), Apple Silicon Metal `mlx-quant` bridge (`64B@0x62`), and `RustyNanoKVM` USB HID gadget engine for Antigravity CLI.**
+**Zero-allocation single-register 64-bit DAG fan-out scheduler (`BitmaskDag`), 5-Stage `Router-Orchestrator-Builder-Verifier-Compressor (ROBV-C)` engine, Ollama Wave Router (`8b-agy-router:latest`), Apple Silicon Metal `mlx-quant` bridge (`64B@0x62`), and `RustyNanoKVM` USB HID gadget engine for Antigravity CLI.**
 
 ---
 
-## 1. Architecture & 3-Wave Fan-Out Pipeline
+## 1. 5-Stage `Router-Orchestrator-Builder-Verifier-Compressor (ROBV-C)` Architecture
 
 ```mermaid
-flowchart LR
-    subgraph Wave1["Wave 1: Index & Route"]
-        ST["smart-tree (st --mcp)"] --> ROUTER["Ollama Router (8b-agy-router:latest @ 127.0.0.1:11434)"]
+flowchart TB
+    subgraph S1["Stage 1: Router (:11434 + :8787)"]
+        ST["smart-tree (st --mcp v23)"] --> ROUTER["8b-agy-router:latest + kev:latest (Q15 Affinity)"]
+        BONOBO["caveman / bonobo Gateway (127.0.0.1:8787 · Rung-0 p/q = 3/2)"] --> ROUTER
     end
-    subgraph Wave2["Wave 2: Parallel Subagent & LAN Fan-Out (BitmaskDag)"]
-        ROUTER -->|"worker=0 (32686/32768 Q15)"| HERETIC["deepseek-v4-pro-qwen35-heretic (Qwen3.5-9B 24 GDN + 8 Full + 1 MTP)"]
-        ROUTER -->|"worker=1 (32686/32768 Q15)"| QWEN4["qwen4-exp-8b-kompress-ultra (#![no_std] p/q Rust + SPARK)"]
-        ROUTER -->|"worker=4 (31360/32768 Q15)"| MOE["qwen3.6:35b-a3b-coding-nvfp4 (48L Heavy MoE)"]
-        ROUTER -->|"worker=5 (30848/32768 Q15)"| KVM["bonsai-vision:latest + RustyNanoKVM (/dev/hidg0)"]
+    subgraph S2["Stage 2: Orchestrator (BitmaskDag BLSR + :8099)"]
+        ROUTER --> DAG["BitmaskDag (Single-Register 64-bit BLSR Waves 1..3)"]
+        DAG <--> TODOS["omni-todos REST + MCP Ledger (127.0.0.1:8099/api/todos)"]
     end
-    subgraph Wave3["Wave 3: Gather & Verify"]
-        HERETIC --> CONV["LanFrame64 (0x8B15 · Gate 0x62) + cargo clippy -D warnings"]
-        QWEN4 --> CONV
-        MOE --> CONV
-        KVM --> CONV
+    subgraph S3["Stage 3: Builder (14-Model Local Mac Ollama + MLX-Quant Fleet :11434)"]
+        DAG -->|"worker=0 (32686/32768 Q15)"| HERETIC["deepseek-v4-pro-qwen35-heretic (Qwen3.5-9B 24 GDN + 8 Full + 1 MTP)"]
+        DAG -->|"worker=1 (32686/32768 Q15)"| QWEN4["qwen4-exp-8b-kompress-ultra (#![no_std] p/q Rust + SPARK)"]
+        DAG -->|"worker=4 (31360/32768 Q15)"| MOE["qwen3.6:35b-a3b-coding-nvfp4 (48L Heavy MoE)"]
+        DAG -->|"worker=5 (30848/32768 Q15)"| KVM["bonsai-vision:latest + RustyNanoKVM (/dev/hidg0)"]
+    end
+    subgraph S4["Stage 4: Verifier (SPARK 113/113 + :8089)"]
+        HERETIC --> VERIFY["Ada 2022 / SPARK gnatprove (113/113 VCs) + LanFrame64 (0x8B15 · Gate 0x62) + dyad-studio (:8089)"]
+        QWEN4 --> VERIFY
+        MOE --> VERIFY
+        KVM --> VERIFY
+    end
+    subgraph S5["Stage 5: Compressor & Duplex Publisher (:8799 + :8790)"]
+        VERIFY --> KOMPRESS["kompress-super-ultra CORE (127.0.0.1:8799 · 4-Role Semantic Fold)"]
+        KOMPRESS --> WA["wa-stream Duplex Leader Socket (127.0.0.1:8790 / 8797 · 0xA8B0)"]
     end
 ```
+
+### Sovereign Local Cluster Port Topology (`8b-agy arch`)
+
+| Service ID | Bind Address | ROBV-C Stage | Repository / Hub | Description |
+| :--- | :---: | :--- | :--- | :--- |
+| **`kompress-super-ultra`** | `127.0.0.1:8799` | Stage 5: Compressor | [`8b-is/kompress-super-ultra`](https://github.com/8b-is/kompress-super-ultra) | Axum + Live WebSocket + 4-Role Semantic Fold Engine (`Pruner`/`Rewriter`/`Composer`/`Circulator`) |
+| **`caveman-bonobo-gateway`** | `127.0.0.1:8787` | Stage 1: Router | `8b-is/bonobo` | Reverse proxy & exact rational `p/q = 3/2` Rung-0 token pricing |
+| **`omni-todos`** | `127.0.0.1:8099` | Stage 2: Orchestrator | `8b-is/omni-todos` | Autonomous DAG task ledger REST + MCP server (`e84df86e-b96c-4802-b2df-993a6f5bdf11`) |
+| **`dyad-studio`** | `127.0.0.1:8089` | Stage 4: Verifier | `8b-is/dyad-studio` | Offline writer & artifact verification studio server |
+| **`wa-stream-leader`** | `127.0.0.1:8790` | Stage 5: Compressor | `8b-is/wa-stream` | Full-duplex 80ms `Quantal80msPacket` (`0xA8B0`) WhatsApp/Discord leader socket (`:8790`/`:8797`) |
+| **`ollama-mlx-fleet`** | `127.0.0.1:11434` | Stage 3: Builder | [`PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra`](https://huggingface.co/PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra) | 14-Model Local Mac `ollama` + Apple Silicon Metal `mlx-quant` Builder Fleet |
 
 ---
 
@@ -101,6 +122,12 @@ cargo install --path . --force
 
 # 7. Inspect the GOD-OF-SUN-WUKONG-OMNI Weight-Programming synthesis (GEMINI 4 ARGON HIGH × smart-tree × 14 Ollama Models)
 8b-agy wukong
+
+# 8. Execute the 5-Stage Router-Orchestrator-Builder-Verifier-Compressor (ROBV-C) Pipeline & probe all 6 Sovereign Cluster ports
+8b-agy arch
+
+# 9. Route and execute live inference against the local Mac Ollama Builder Fleet (:11434) with 64B@0x62 frame sealing
+8b-agy exec "Derive reduced p/q of 375/250 with uncensored heretic reasoning in one sentence."
 ```
 
 ---
