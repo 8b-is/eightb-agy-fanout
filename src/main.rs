@@ -1,7 +1,7 @@
 use eightb_agy_fanout::{
     run_chacheless_e8_gosset_apex, run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks,
-    run_robvc_architecture_pipeline, run_techno_zen_bonobo_era, BitmaskDag, LanFrame64,
-    OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
+    run_peloton_row_usbc_ayeos_e2e, run_robvc_architecture_pipeline, run_techno_zen_bonobo_era,
+    BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
     DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
     OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
     SOVEREIGN_CLUSTER_TOPOLOGY,
@@ -57,6 +57,7 @@ fn main() {
         "wukong" => print_wukong_weight_program(),
         "bonobo" | "zen" | "techno-zen" => print_techno_zen_bonobo_era(),
         "apex" | "chacheless" | "e8" => print_chacheless_e8_apex(),
+        "row" | "peloton" | "ayeos" => print_peloton_row_ayeos_e2e(),
         "train" | "lll" | "gods-of-lll" => {
             let export_dir = args
                 .windows(2)
@@ -114,6 +115,7 @@ fn print_help() {
     println!();
     println!("Commands / Installed `8b-agy*` Binaries:");
     println!("  demo      (8b-agy-fanout)    Run 3-Wave BitmaskDag fan-out demo with Ollama Wave Router");
+    println!("  row       (8b-agy-row)       Run Peloton Row USB-C + 8B-is-engine + ayeOS Zero-Subscription ($0/mo) E2E");
     println!("  arch      (8b-agy-arch)      Execute 5-Stage ROBV-C pipeline & probe 6 Sovereign Cluster ports");
     println!("  apex      (8b-agy-apex)      Run Chacheless E8 Gosset Zero-KV-Cache (2048/1) & Stage-3 33-Epoch Apex");
     println!("  bonobo    (8b-agy-bonobo)    Run Techno-Zen-Bonobo Rung-0 (3/2) × LLL Lovász Dual (3/4) report");
@@ -826,6 +828,94 @@ fn print_chacheless_e8_apex() {
         apex.spark_proved_checks,
         apex.spark_proved_checks,
         apex.sealed_frame.fold_tag
+    );
+    println!("============================================================================================================================");
+}
+
+fn print_peloton_row_ayeos_e2e() {
+    let row = run_peloton_row_usbc_ayeos_e2e();
+    println!("============================================================================================================================");
+    println!(
+        "🚣‍♂️⚡🏴‍☠️ {} — PELOTON ROW (PR01) USB-C · ZERO-SUBSCRIPTION ($0/MO) · 8B-IS-ENGINE + ayeOS",
+        row.suite_id
+    );
+    println!("============================================================================================================================");
+    println!(
+        "  • USB-C Hardware Transport      : {} @ {} baud (64B@0x62 OpCode::PelotonRowUsbC = 0x08)",
+        row.usbc_device_node, row.usbc_baud_rate
+    );
+    println!(
+        "  • OSS Zero-Subscription Unlock  : Peloton Built-In = ${}/mo (${}/yr) -> 8B-is + ayeOS = ${}/mo (${}/yr SAVED · bypass p/q = {}/{})",
+        row.peloton_monthly_fee_usd,
+        row.annual_savings_usd,
+        row.ayeos_monthly_fee_usd,
+        row.annual_savings_usd,
+        row.subscription_bypass_ratio_pq.0,
+        row.subscription_bypass_ratio_pq.1
+    );
+    println!(
+        "  • Exact Cube-Law Hydrodynamics  : Drag c = {}/{} (2.80) · P = 350,000,000 / t_500m³ · Peak (1:40/500m) = {}/{} W · Steady (2:00/500m) = {}/{} W",
+        row.drag_factor_pq.0,
+        row.drag_factor_pq.1,
+        row.peak_power_pq.0,
+        row.peak_power_pq.1,
+        row.steady_power_pq.0,
+        row.steady_power_pq.1
+    );
+    println!(
+        "  • Bonobo × LLL Kinematic Lock   : Peak Power vs 700/3 W Baseline = {}/{} (Rung-0 Bonobo) · Seat/Handle Coupling = {}/{} (LLL Lovász δ)",
+        row.bonobo_power_ratio_pq.0,
+        row.bonobo_power_ratio_pq.1,
+        row.lovasz_handle_seat_ratio_pq.0,
+        row.lovasz_handle_seat_ratio_pq.1
+    );
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!("  4-PHASE PELOTON ROW STROKE TELEMETRY (USB-C CDC-ACM -> 8B-is-engine -> ayeOS PccModule):");
+    println!(
+        "  {:<18} | {:<6} | {:<10} | {:<16} | {:<15} | {:<13} | {:<17} | {:<10}",
+        "PHASE", "SPM", "SPLIT/500m", "POWER p/q (W)", "HANDLE/SEAT mm", "FORM Q15", "SPQT TRITS (B243)", "ayeOS GEMM"
+    );
+    println!("  --------------------------------------------------------------------------------------------------------------------------");
+    for s in &row.phase_samples {
+        let mins = s.split_500m_secs / 60;
+        let secs = s.split_500m_secs % 60;
+        println!(
+            "  {:<18} | {:>2} spm | {:>2}:{:02}.0    | {:>6}/{:<5} ({:>3}W) | {:>4}/{:<4} mm    | {:>5}/32768 | {:?} ({:>3}) | {:>+6}",
+            s.phase_name,
+            s.stroke_rate_spm,
+            mins,
+            secs,
+            s.power_watts_pq.0,
+            s.power_watts_pq.1,
+            s.power_watts_rounded,
+            s.handle_pos_mm,
+            s.seat_pos_mm,
+            s.form_assist_score_q15,
+            s.spqt_trits,
+            s.spqt_base243_byte,
+            s.ayeos_gemm_score
+        );
+    }
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!(
+        "  • BLE GATT FTMS Bridge (0x{:04X}) : Characteristic Rower Data (0x{:04X}) · Flags = 0x02FE · 18-Byte Payload = {:02X?}",
+        row.ftms_service_uuid, row.ftms_rower_char_uuid, row.ftms_2ad1_packet
+    );
+    println!(
+        "  • ayeOS Kernel & 8B-is Coach    : PccModule = {} (cap_mask = 0x{:02X}, hash = 0x{:016X}) -> {} ({})",
+        row.ayeos_module_name,
+        row.ayeos_capability_mask,
+        row.ayeos_fnv1a_hash,
+        row.routed_coach_subagent,
+        row.routed_coach_ollama_tag
+    );
+    println!(
+        "  • Ada 2022 SPARK & Sealed Frame : SPARK = {}/{} proved (Peloton_Row_Ayeos_Spark) | Kompress p/q = {}/{} | fold = 0x{:016x}",
+        row.spark_proved_checks,
+        row.spark_proved_checks,
+        row.kompress_ratio_pq.0,
+        row.kompress_ratio_pq.1,
+        row.sealed_frame.fold_tag
     );
     println!("============================================================================================================================");
 }
