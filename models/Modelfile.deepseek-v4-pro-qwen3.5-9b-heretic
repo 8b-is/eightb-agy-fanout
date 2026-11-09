@@ -1,7 +1,7 @@
 # Modelfile: DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic (Mac Ollama / Apple Silicon nvfp4)
 # Upstream HF Safetensors: https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic
 # Direct GGUF Pull Option: FROM hf.co/mradermacher/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-GGUF:Q4_K_M
-FROM qwen3.6-fast:latest
+FROM gpt-oss:20b
 
 PARAMETER num_ctx 65536
 PARAMETER temperature 0.6

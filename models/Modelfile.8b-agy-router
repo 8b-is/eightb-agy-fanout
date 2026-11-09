@@ -1,6 +1,6 @@
 # Modelfile: 8b-agy-router (Ollama Wave-2 DAG Router for eightb-agy-fanout)
 # Base: qwen3_5 mxfp8 decision model (d3:latest)
-FROM d3:latest
+FROM gpt-oss:20b
 
 PARAMETER num_ctx 32768
 PARAMETER temperature 0.1

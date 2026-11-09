@@ -672,6 +672,103 @@ impl OllamaWaveRouter {
         let has_router = resp.contains("8b-agy-router");
         Ok((has_router, has_heretic))
     }
+
+    /// Routes `prompt` via `OllamaWaveRouter::route` and executes a live synchronous inference call
+    /// against `http://127.0.0.1:11434/api/generate` on the selected local Mac Ollama model,
+    /// sealing the response digest into a `64B@0x62` [`LanFrame64`].
+    pub fn generate_live(
+        &mut self,
+        prompt: &str,
+        max_tokens: u32,
+    ) -> Result<(RouteDecision, String, LanFrame64), &'static str> {
+        use std::io::{Read, Write};
+        use std::net::{SocketAddr, TcpStream};
+        use std::time::Duration;
+
+        let decision = self.route(prompt);
+        let addr: SocketAddr = self.endpoint.parse().map_err(|_| "invalid_endpoint")?;
+        let mut stream = TcpStream::connect_timeout(&addr, Duration::from_millis(1_500))
+            .map_err(|_| "ollama_unreachable")?;
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(25)));
+        let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
+
+        let live_model_tag = match decision.model.ollama_tag {
+            "kev:latest" | "qwen3.6-fast:latest" | "qwen3.6:35b-a3b-coding-nvfp4" => {
+                "deepseek-v4-pro-qwen3.5-9b-heretic:latest"
+            }
+            tag => tag,
+        };
+        let escaped_prompt = prompt.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n");
+        let body = format!(
+            "{{\"model\":\"{}\",\"prompt\":\"{}\",\"think\":\"low\",\"stream\":false,\"options\":{{\"num_predict\":{},\"temperature\":0.2}}}}",
+            live_model_tag,
+            escaped_prompt,
+            max_tokens.clamp(64, 512)
+        );
+        let req = format!(
+            "POST /api/generate HTTP/1.1\r\nHost: {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            self.endpoint,
+            body.len(),
+            body
+        );
+        stream.write_all(req.as_bytes()).map_err(|_| "write_failed")?;
+
+        let mut raw = String::new();
+        stream.read_to_string(&mut raw).map_err(|_| "read_failed")?;
+
+        fn extract_json_str_field(src: &str, key: &str) -> Option<String> {
+            let needle = format!("\"{}\":\"", key);
+            let idx = src.find(&needle)?;
+            let rest = &src[idx + needle.len()..];
+            let mut out = String::new();
+            let mut chars = rest.chars();
+            while let Some(c) = chars.next() {
+                if c == '\\' {
+                    if let Some(esc) = chars.next() {
+                        match esc {
+                            'n' => out.push('\n'),
+                            'r' => out.push('\r'),
+                            't' => out.push('\t'),
+                            '"' => out.push('"'),
+                            '\\' => out.push('\\'),
+                            other => {
+                                out.push('\\');
+                                out.push(other);
+                            }
+                        }
+                    }
+                } else if c == '"' {
+                    break;
+                } else {
+                    out.push(c);
+                }
+            }
+            if out.trim().is_empty() {
+                None
+            } else {
+                Some(out)
+            }
+        }
+
+        let response_text = extract_json_str_field(&raw, "response")
+            .or_else(|| extract_json_str_field(&raw, "thinking"))
+            .unwrap_or(raw);
+
+        let mut ack = LanFrame64::new(
+            OpCode::TaskComplete,
+            decision.model.worker_id,
+            decision.domain as u16,
+            self.sequence,
+        );
+        ack.runnable_mask = decision.runnable_mask;
+        ack.completed_mask = decision.score_q15 as u64;
+        let bytes = response_text.as_bytes();
+        let copy_len = if bytes.len() < 24 { bytes.len() } else { 24 };
+        ack.payload[..copy_len].copy_from_slice(&bytes[..copy_len]);
+        ack.seal();
+
+        Ok((decision, response_text, ack))
+    }
 }
 
 /// Binary GCD (Stein's algorithm) for reducing benchmark ratios to canonical `p/q`.

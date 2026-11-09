@@ -42,6 +42,15 @@ fn main() {
             };
             run_ollama_router(&prompt);
         }
+        "exec" => {
+            let prompt = if args.len() > 2 {
+                args[2..].join(" ")
+            } else {
+                "State the exact canonical rational p/q for 375/250 and confirm 64B@0x62 resonance in 2 lines."
+                    .to_string()
+            };
+            run_ollama_live_exec(&prompt);
+        }
         _ => run_wave_demo(),
     }
 }
@@ -295,6 +304,26 @@ fn run_ollama_router(prompt: &str) {
         decision.frame.gate,
         decision.frame.opcode
     );
+}
+
+fn run_ollama_live_exec(prompt: &str) {
+    let mut router = OllamaWaveRouter::new();
+    match router.generate_live(prompt, 128) {
+        Ok((decision, response, ack_frame)) => {
+            println!(
+                "8b-agy LIVE OLLAMA EXEC [routed -> {} ({}) @ {}]",
+                decision.model.subagent_id, decision.model.ollama_tag, router.endpoint
+            );
+            println!("  affinity_pq   : {}/{} Q15", decision.score_q15, Q15_SCALE);
+            println!("  dispatch_fold : 0x{:016x}", decision.frame.fold_tag);
+            println!("  complete_fold : 0x{:016x} (opcode=0x{:02x})", ack_frame.fold_tag, ack_frame.opcode);
+            println!("  response      :\n{}", response.trim());
+        }
+        Err(e) => {
+            println!("8b-agy LIVE OLLAMA EXEC FALLBACK (error={})", e);
+            run_ollama_router(prompt);
+        }
+    }
 }
 
 fn run_wave_demo() {
