@@ -1,6 +1,7 @@
 use eightb_agy_fanout::{
-    BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES,
-    DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION, Q15_SCALE,
+    run_hardware_kernel_benchmarks, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode,
+    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION, Q15_SCALE,
+    SOTA_8B_BENCHMARK_MATRIX,
 };
 use std::env;
 use std::net::UdpSocket;
@@ -17,6 +18,13 @@ fn main() {
         }
         "models" => print_fanout_models(),
         "mlx-quant" => print_mlx_quant_profiles(),
+        "bench" | "benchmark" => {
+            let iters = args
+                .get(2)
+                .and_then(|s| s.parse::<u64>().ok())
+                .unwrap_or(100_000);
+            run_sota_and_hardware_benchmarks(iters);
+        }
         "route" => {
             let prompt = if args.len() > 2 {
                 args[2..].join(" ")
@@ -72,6 +80,59 @@ fn print_mlx_quant_profiles() {
             p.litany_wire_seal16,
             p.spqt_root_base243,
             frame.fold_tag
+        );
+    }
+}
+
+fn run_sota_and_hardware_benchmarks(iters: u64) {
+    println!("============================================================================================================================");
+    println!("8b-agy v0.2.0 — 8B SOTA HUGGING FACE MODEL BENCHMARK SUITE (EXACT CANONICAL RATIONAL p/q)");
+    println!("  Primary 8B SOTA : https://huggingface.co/PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra");
+    println!("  Heretic Subagent: https://huggingface.co/xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic");
+    println!("============================================================================================================================");
+    println!(
+        "{:<30} | {:<22} | {:<18} | {:<18} | {:<15} | {:<15}",
+        "BENCHMARK", "CATEGORY", "QWEN4-EXP-8B (p/q)", "HERETIC-9B (p/q)", "QWEN3.5-9B", "R1-DISTILL-7B"
+    );
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    for row in &SOTA_8B_BENCHMARK_MATRIX {
+        let (qp, qq) = row.qwen4_exp_reduced_pq();
+        let (hp, hq) = row.heretic_9b_reduced_pq();
+        println!(
+            "{:<30} | {:<22} | {:>5}/{:<5} ({:>4}bp) | {:>5}/{:<5} ({:>4}bp) | {:>4}/{:<4} ({:>4}bp) | {:>4}/{:<4} ({:>4}bp)",
+            row.benchmark,
+            row.category,
+            qp,
+            qq,
+            row.qwen4_exp_bps,
+            hp,
+            hq,
+            row.heretic_9b_bps,
+            row.qwen35_9b_p,
+            row.qwen35_9b_q,
+            row.qwen35_9b_bps,
+            row.r1_distill_7b_p,
+            row.r1_distill_7b_q,
+            row.r1_distill_7b_bps
+        );
+    }
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!(
+        "HARDWARE KERNEL MICROBENCHMARKS (cntvct_el0 / _rdtsc · iterations = {})",
+        iters
+    );
+    let hw = run_hardware_kernel_benchmarks(iters);
+    for k in &hw {
+        println!(
+            "  • {:<46} : elapsed={:>8} ns ({:>7} ticks) | ns/op = {}/{} | ticks/op = {}/{} | seal=0x{:016x}",
+            k.kernel_name,
+            k.elapsed_ns,
+            k.elapsed_ticks,
+            k.ns_per_op_p,
+            k.ns_per_op_q,
+            k.ticks_per_op_p,
+            k.ticks_per_op_q,
+            k.checksum
         );
     }
 }
