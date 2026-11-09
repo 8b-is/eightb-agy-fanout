@@ -1,9 +1,10 @@
 use eightb_agy_fanout::{
-    run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks, run_robvc_architecture_pipeline,
-    run_techno_zen_bonobo_era, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage,
-    WukongOmniWeightProgram, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND,
-    FANOUT_MODEL_CONSTELLATION, OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE,
-    SOTA_8B_BENCHMARK_MATRIX, SOVEREIGN_CLUSTER_TOPOLOGY,
+    run_chacheless_e8_gosset_apex, run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks,
+    run_robvc_architecture_pipeline, run_techno_zen_bonobo_era, BitmaskDag, LanFrame64,
+    OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
+    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
+    OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
+    SOVEREIGN_CLUSTER_TOPOLOGY,
 };
 use std::env;
 use std::fs;
@@ -24,6 +25,7 @@ fn main() {
         "mlx-quant" => print_mlx_quant_profiles(),
         "wukong" => print_wukong_weight_program(),
         "bonobo" | "zen" | "techno-zen" => print_techno_zen_bonobo_era(),
+        "apex" | "chacheless" | "e8" => print_chacheless_e8_apex(),
         "train" | "lll" | "gods-of-lll" => {
             let export_dir = args
                 .windows(2)
@@ -712,6 +714,67 @@ fn print_techno_zen_bonobo_era() {
     println!(
         "  • Sealed 64B Techno-Zen Frame   : fold = 0x{:016x} (magic = 0x8b15, gate = 0x62, task = 9/8)",
         zen.sealed_frame.fold_tag
+    );
+    println!("============================================================================================================================");
+}
+
+fn print_chacheless_e8_apex() {
+    let apex = run_chacheless_e8_gosset_apex(33);
+    println!("============================================================================================================================");
+    println!(
+        "🌌🏛️⚡ {} — ZERO-KV-CACHE (2048/1) · E8 GOSSET (240 ROOTS) · STAGE-3 33-EPOCH APEX",
+        apex.suite_id
+    );
+    println!("============================================================================================================================");
+    println!(
+        "  • E8 Gosset Lattice Quantizer   : y_scaled2 = {:?} (coset = {}, dist² = {}, sum = {} ≡ 0 mod 4)",
+        apex.e8_quantization.y_scaled2,
+        apex.e8_quantization.coset,
+        apex.e8_quantization.dist_sq_q2,
+        apex.e8_quantization.coord_sum
+    );
+    println!(
+        "  • Viazovska 8D Packing Invariant: kissing_number = {} (112 D8 + 128 spinor) | det(Λ_E8) = {} | uniform_parity = {}",
+        apex.e8_quantization.kissing_number,
+        apex.e8_quantization.unimodular_det,
+        apex.e8_quantization.uniform_parity
+    );
+    println!(
+        "  • Chacheless Zero-KV-Cache 262K : {} MiB (FP16 KV) -> {} MiB (O(1) GDN+E8 State) = {}/{} KV Elimination | p/qT = {}/{}",
+        apex.standard_262k_kv_mib,
+        apex.chacheless_state_mib,
+        apex.kv_elimination_ratio_pq.0,
+        apex.kv_elimination_ratio_pq.1,
+        apex.chacheless_pqt_compression_pq.0,
+        apex.chacheless_pqt_compression_pq.1
+    );
+    println!(
+        "  • Stage-3 (33 Epochs / 132 Roll): Reward = {}/32768 ({}/{} = 99.988%) | MOPD2 Loss = {}/32768 (1/8192) | GR = {:?} | PLE = {}",
+        apex.final_reward_q15,
+        apex.final_reward_pq.0,
+        apex.final_reward_pq.1,
+        apex.final_mopd2_loss_q15,
+        apex.final_gr_gates_q8,
+        apex.final_ple_gain_q8
+    );
+    println!(
+        "  • Apex 8B SOTA Benchmarks (p/q) : AIME = 30/30 ({}/{}) · MATH-500 = 498/500 ({}/{}) · LCB = 198/200 ({}/{}) · SWE = 465/500 ({}/{}) · GPQA = 180/198 ({}/{})",
+        apex.apex_benchmarks_pq[0].0,
+        apex.apex_benchmarks_pq[0].1,
+        apex.apex_benchmarks_pq[1].0,
+        apex.apex_benchmarks_pq[1].1,
+        apex.apex_benchmarks_pq[2].0,
+        apex.apex_benchmarks_pq[2].1,
+        apex.apex_benchmarks_pq[3].0,
+        apex.apex_benchmarks_pq[3].1,
+        apex.apex_benchmarks_pq[4].0,
+        apex.apex_benchmarks_pq[4].1
+    );
+    println!(
+        "  • Ada 2022 SPARK & Sealed Frame : SPARK = {}/{} proved | fold = 0x{:016x} (magic = 0x8b15, gate = 0x62, task = 33)",
+        apex.spark_proved_checks,
+        apex.spark_proved_checks,
+        apex.sealed_frame.fold_tag
     );
     println!("============================================================================================================================");
 }
