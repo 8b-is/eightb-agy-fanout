@@ -13,10 +13,41 @@ use std::path::Path;
 use std::time::Duration;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let cmd = args.get(1).map(|s| s.as_str()).unwrap_or("demo");
+    let raw_args: Vec<String> = env::args().collect();
+    let bin_name = raw_args
+        .first()
+        .and_then(|p| Path::new(p).file_name())
+        .and_then(|s| s.to_str())
+        .unwrap_or("8b-agy")
+        .to_string();
 
-    match cmd {
+    // Support multicall invocation as `8b-agy-<subcommand>` (e.g., `8b-agy-router`, `8b-agy-apex`, `8b-agy-train`)
+    let (cmd, args): (String, Vec<String>) = if let Some(suffix) = bin_name.strip_prefix("8b-agy-") {
+        let mapped = match suffix {
+            "router" => "route",
+            "fanout" => "demo",
+            other => other,
+        };
+        let mut synthetic = Vec::with_capacity(raw_args.len() + 1);
+        synthetic.push(raw_args[0].clone());
+        synthetic.push(mapped.to_string());
+        synthetic.extend_from_slice(&raw_args[1..]);
+        (mapped.to_string(), synthetic)
+    } else {
+        let c = raw_args
+            .get(1)
+            .cloned()
+            .unwrap_or_else(|| "demo".to_string());
+        (c, raw_args)
+    };
+
+    match cmd.as_str() {
+        "--version" | "-V" | "version" => {
+            println!("8b-agy {} (eightb-agy-fanout · CHACHELESS-E8-GOSSET-APEX · ROBV-C · LanFrame64 0x8B15/0x62)", env!("CARGO_PKG_VERSION"));
+        }
+        "--help" | "-h" | "help" => {
+            print_help();
+        }
         "daemon" => {
             let bind_addr = args.get(2).map(|s| s.as_str()).unwrap_or(DEFAULT_UDP_BIND);
             run_udp_daemon(bind_addr);
@@ -55,7 +86,7 @@ fn main() {
                 run_sota_and_hardware_benchmarks(iters);
             }
         }
-        "route" => {
+        "route" | "router" => {
             let prompt = if args.len() > 2 {
                 args[2..].join(" ")
             } else {
@@ -75,6 +106,26 @@ fn main() {
         }
         _ => run_wave_demo(),
     }
+}
+
+fn print_help() {
+    println!("8b-agy v{} — Zero-Alloc LAN Fan-Out DAG Scheduler, ROBV-C Pipeline & Ollama Wave Router", env!("CARGO_PKG_VERSION"));
+    println!("Usage: 8b-agy <command> [args...]  (or invoke directly via `8b-agy-<command>` binaries)");
+    println!();
+    println!("Commands / Installed `8b-agy*` Binaries:");
+    println!("  demo      (8b-agy-fanout)    Run 3-Wave BitmaskDag fan-out demo with Ollama Wave Router");
+    println!("  arch      (8b-agy-arch)      Execute 5-Stage ROBV-C pipeline & probe 6 Sovereign Cluster ports");
+    println!("  apex      (8b-agy-apex)      Run Chacheless E8 Gosset Zero-KV-Cache (2048/1) & Stage-3 33-Epoch Apex");
+    println!("  bonobo    (8b-agy-bonobo)    Run Techno-Zen-Bonobo Rung-0 (3/2) × LLL Lovász Dual (3/4) report");
+    println!("  train     (8b-agy-train)     Run Integral LLL Lattice Reduction & 22-Epoch 6-Model Co-Training");
+    println!("  wukong    (8b-agy-wukong)    Synthesize GOD-OF-SUN-WUKONG-OMNI weight program & p/qT Base-243 seal");
+    println!("  models    (8b-agy-models)    List 6-model Fan-Out Constellation & Hugging Face / Ollama tags");
+    println!("  mlx-quant (8b-agy-mlx-quant) Inspect Apple Silicon Metal mlx-quant 64B@0x62 LitanyWireFrame seals");
+    println!("  route     (8b-agy-router)    Route prompt via Ollama Wave Router (:11434) with Q15 p/q scoring");
+    println!("  exec      (8b-agy-exec)      Execute live routed inference on Mac Ollama Fleet (:11434)");
+    println!("  bench     (8b-agy-bench)     Run 11-pillar 8B SOTA benchmark matrix + cntvct_el0 microbenchmarks");
+    println!("  daemon    (8b-agy-daemon)    Start 64-byte aligned UDP LAN worker daemon (default 0.0.0.0:18815)");
+    println!("  (also installed: 8b-agy-omni-ui / agy-omni-ui for Babilon-Ultra-K9 Pack Radar & OpenAPI 3.1 CLI)");
 }
 
 fn print_fanout_models() {
