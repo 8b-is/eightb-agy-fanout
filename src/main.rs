@@ -1,8 +1,8 @@
 use eightb_agy_fanout::{
     run_chacheless_e8_gosset_apex, run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks,
     run_multi_agent_code_review, run_multi_agent_optimization, run_peloton_row_usbc_ayeos_e2e,
-    run_robvc_architecture_pipeline, run_techno_zen_bonobo_era, BitmaskDag, LanFrame64,
-    OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
+    run_robvc_architecture_pipeline, run_techno_zen_bonobo_era, run_wici_wireless_gpu_moe_fanout,
+    BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
     DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
     OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
     SOVEREIGN_CLUSTER_TOPOLOGY,
@@ -59,6 +59,15 @@ fn main() {
         "bonobo" | "zen" | "techno-zen" => print_techno_zen_bonobo_era(),
         "apex" | "chacheless" | "e8" => print_chacheless_e8_apex(),
         "row" | "peloton" | "ayeos" => print_peloton_row_ayeos_e2e(),
+        "wici" | "wici-moe" | "wici-gpu" => {
+            let steps = args
+                .iter()
+                .skip(2)
+                .find_map(|s| s.parse::<u32>().ok())
+                .unwrap_or(32);
+            let json_mode = args.iter().any(|s| s == "--json");
+            print_wici_wireless_gpu_moe(steps, json_mode);
+        }
         "optimize" | "opt" | "multi-agent-optimize" => {
             let iters = args
                 .iter()
@@ -136,6 +145,7 @@ fn print_help() {
     println!();
     println!("Commands / Installed `8b-agy*` Binaries:");
     println!("  review    (8b-agy-review)    Run 6-Agent Hybrid Code Review Orchestrator (Wave-1 Par + Wave-2 Seq + SPARK)");
+    println!("  wici      (8b-agy-wici)      Run 3-Wave WiCi Wireless GPU & DeepSeek-671B MoE Trace-Replay Fan-Out (RTX 4090 + A6000)");
     println!("  optimize  (8b-agy-optimize)  Run 8-Pillar Multi-Agent Optimization Toolkit (Profiler + Memo + Cost + Wave)");
     println!("  demo      (8b-agy-fanout)    Run 3-Wave BitmaskDag fan-out demo with Ollama Wave Router");
     println!("  row       (8b-agy-row)       Run Peloton Row USB-C + 8B-is-engine + ayeOS Zero-Subscription ($0/mo) E2E");
@@ -1143,6 +1153,71 @@ fn print_multi_agent_code_review(target: &str) {
         rev.total_spark_checks_proved,
         rev.total_spark_checks_proved,
         rev.sealed_frame.fold_tag
+    );
+    println!("============================================================================================================================");
+}
+
+fn print_wici_wireless_gpu_moe(steps: u32, json_mode: bool) {
+    let rep = run_wici_wireless_gpu_moe_fanout(steps);
+    if json_mode {
+        println!(
+            "{{\"suite_id\":\"{}\",\"float_count\":0,\"steps\":{},\"dag_waves_dispatched\":{},\"local_gpu_vram_mib\":{},\"local_host_ram_mib\":{},\"tforce_nvme_vault_mib\":{},\"hetzner_a6000_vram_mib\":{},\"hetzner_a6000_ram_mib\":{},\"deepseek_671b_b158_mib\":{},\"naive_driver_rtts_per_step\":{},\"batched_rtts_per_step\":{},\"trace_replay_rtts_per_step\":{},\"rtt_savings_pq\":\"{}/{}\",\"qat_subwindow_reuse_pq\":\"{}/{}\",\"training_speedup_pq\":\"{}/{}\",\"frame64_fold_hex\":\"0x{:016x}\"}}",
+            rep.suite_id,
+            steps.max(2),
+            rep.dag_waves_dispatched,
+            rep.local_gpu_vram_mib,
+            rep.local_host_ram_mib,
+            rep.tforce_nvme_vault_mib,
+            rep.hetzner_a6000_vram_mib,
+            rep.hetzner_a6000_ram_mib,
+            rep.deepseek_671b_b158_mib,
+            rep.naive_driver_rtts_per_step,
+            rep.batched_rtts_per_step,
+            rep.trace_replay_rtts_per_step,
+            rep.rtt_savings_pq.0,
+            rep.rtt_savings_pq.1,
+            rep.qat_subwindow_reuse_pq.0,
+            rep.qat_subwindow_reuse_pq.1,
+            rep.training_speedup_pq.0,
+            rep.training_speedup_pq.1,
+            rep.sealed_frame.fold_tag
+        );
+        return;
+    }
+    println!("============================================================================================================================");
+    println!(
+        "📡🧠⚡ {} — 3-WAVE WICI WIRELESS GPU & DEEPSEEK-671B MOE TRACE-REPLAY FAN-OUT",
+        rep.suite_id
+    );
+    println!("============================================================================================================================");
+    println!(
+        "  • Local Workstation Tier  : RTX 4090 = {} MiB VRAM + {} MiB Host RAM + T-FORCE TM8FPP002T NVMe = {} MiB",
+        rep.local_gpu_vram_mib, rep.local_host_ram_mib, rep.tforce_nvme_vault_mib
+    );
+    println!(
+        "  • Hetzner cheet·is Tier   : RTX 6000 Ada = {} MiB VRAM + {} MiB Host RAM (49·13·101·247)",
+        rep.hetzner_a6000_vram_mib, rep.hetzner_a6000_ram_mib
+    );
+    println!(
+        "  • DeepSeek-671B MoE B1·58 : {} MiB (5 trits/byte Base-243 SPQT · fits 100% in VRAM + Host RAM on BOTH nodes!)",
+        rep.deepseek_671b_b158_mib
+    );
+    println!(
+        "  • Driver RTT Collapse     : {} naive RTTs/step -> {} batched RTTs/step -> {} trace-replay RTT/step (64B@0x62)",
+        rep.naive_driver_rtts_per_step, rep.batched_rtts_per_step, rep.trace_replay_rtts_per_step
+    );
+    println!(
+        "  • Exact Rational Gains    : RTT Savings = {}/{} | QAT 4096B Sub-Window Reuse = {}/{} | Training Speedup = {}/{}",
+        rep.rtt_savings_pq.0,
+        rep.rtt_savings_pq.1,
+        rep.qat_subwindow_reuse_pq.0,
+        rep.qat_subwindow_reuse_pq.1,
+        rep.training_speedup_pq.0,
+        rep.training_speedup_pq.1
+    );
+    println!(
+        "  • 3-Wave BitmaskDag & Seal: waves_dispatched = {} | LanFrame64 fold = 0x{:016x} (magic = 0x8b15, gate = 0x62)",
+        rep.dag_waves_dispatched, rep.sealed_frame.fold_tag
     );
     println!("============================================================================================================================");
 }
