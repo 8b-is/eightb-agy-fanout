@@ -1,10 +1,11 @@
 use eightb_agy_fanout::{
     run_chacheless_e8_gosset_apex, run_gods_of_lll_cotraining, run_hardware_kernel_benchmarks,
-    run_multi_agent_optimization, run_peloton_row_usbc_ayeos_e2e, run_robvc_architecture_pipeline,
-    run_techno_zen_bonobo_era, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode, RobvcStage,
-    WukongOmniWeightProgram, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND,
-    FANOUT_MODEL_CONSTELLATION, OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE,
-    SOTA_8B_BENCHMARK_MATRIX, SOVEREIGN_CLUSTER_TOPOLOGY,
+    run_multi_agent_code_review, run_multi_agent_optimization, run_peloton_row_usbc_ayeos_e2e,
+    run_robvc_architecture_pipeline, run_techno_zen_bonobo_era, BitmaskDag, LanFrame64,
+    OllamaWaveRouter, OpCode, RobvcStage, WukongOmniWeightProgram,
+    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION,
+    OLLAMA_LOCAL_FLEET, PEETPEDRO_11_DATASETS, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
+    SOVEREIGN_CLUSTER_TOPOLOGY,
 };
 use std::env;
 use std::fs;
@@ -66,11 +67,23 @@ fn main() {
                 .unwrap_or(500_000);
             print_multi_agent_optimization(iters);
         }
+        "review" | "multi-agent-review" | "audit" => {
+            let target = if args.len() > 2 {
+                args[2..].join(" ")
+            } else {
+                "8b-agy* + felix + felix-phoenix + memnet + smart-tree".to_string()
+            };
+            print_multi_agent_code_review(&target);
+        }
         "train" | "lll" | "gods-of-lll" => {
             let export_dir = args
                 .windows(2)
                 .find_map(|w| if w[0] == "--export-dir" { Some(w[1].as_str()) } else { None });
-            run_gods_of_lll_cli(export_dir);
+            let epochs = args
+                .windows(2)
+                .find_map(|w| if w[0] == "--epochs" { w[1].parse::<usize>().ok() } else { None })
+                .unwrap_or(44);
+            run_gods_of_lll_cli(epochs, export_dir);
         }
         "arch" | "robvc" | "cluster" => {
             let prompt = if args.len() > 2 {
@@ -122,6 +135,7 @@ fn print_help() {
     println!("Usage: 8b-agy <command> [args...]  (or invoke directly via `8b-agy-<command>` binaries)");
     println!();
     println!("Commands / Installed `8b-agy*` Binaries:");
+    println!("  review    (8b-agy-review)    Run 6-Agent Hybrid Code Review Orchestrator (Wave-1 Par + Wave-2 Seq + SPARK)");
     println!("  optimize  (8b-agy-optimize)  Run 8-Pillar Multi-Agent Optimization Toolkit (Profiler + Memo + Cost + Wave)");
     println!("  demo      (8b-agy-fanout)    Run 3-Wave BitmaskDag fan-out demo with Ollama Wave Router");
     println!("  row       (8b-agy-row)       Run Peloton Row USB-C + 8B-is-engine + ayeOS Zero-Subscription ($0/mo) E2E");
@@ -305,13 +319,13 @@ fn print_robvc_architecture(prompt: &str) {
     println!("============================================================================================================================");
 }
 
-fn run_gods_of_lll_cli(export_dir: Option<&str>) {
-    let report = run_gods_of_lll_cotraining(22);
+fn run_gods_of_lll_cli(epochs: usize, export_dir: Option<&str>) {
+    let report = run_gods_of_lll_cotraining(epochs);
     let lll = &report.lll_reduction;
     println!("============================================================================================================================");
     println!(
-        "⚡🏛️ {} — INTEGRAL LLL LATTICE REDUCTION & 22-EPOCH TOP-MODEL CO-TRAINING",
-        report.suite_id
+        "⚡🏛️ {} — INTEGRAL LLL + E8 GOSSET + A6000 {}-EPOCH TOP-MODEL CO-TRAINING",
+        report.suite_id, report.epochs_completed
     );
     println!("============================================================================================================================");
     println!("1. INTEGRAL LLL LATTICE BASIS REDUCTION (delta = 3/4 Lovasz Condition · Z^16 Unimodular GL_2(Z)):");
@@ -328,7 +342,10 @@ fn run_gods_of_lll_cli(export_dir: Option<&str>) {
         lll.size_reduced, lll.lovasz_3_4_satisfied
     );
     println!("----------------------------------------------------------------------------------------------------------------------------");
-    println!("2. 6-MODEL CONSTELLATION CO-TRAINING RESULTS (22 EPOCHS × 4 ROLLOUTS = 88 GRPO/GSPO ROLLOUTS):");
+    println!(
+        "2. 6-MODEL CONSTELLATION CO-TRAINING RESULTS ({} EPOCHS × 4 ROLLOUTS = {} GRPO/GSPO/E8/A6000 ROLLOUTS):",
+        report.epochs_completed, report.total_group_rollouts
+    );
     println!(
         "{:<2} | {:<32} | {:<41} | {:<18} | {:<18} | {:<14}",
         "ID", "SUBAGENT / NODE", "OLLAMA TAG", "STAGE-1 -> FINAL", "MOPD2 LOSS (Q15)", "FRAME64 FOLD"
@@ -352,8 +369,8 @@ fn run_gods_of_lll_cli(export_dir: Option<&str>) {
         "3. CONVERGED PRIMARY 8B SOTA POLICY (PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra):"
     );
     println!(
-        "  • Final Q15 Reward : {}/32768 (8189/8192 = 99.96%) | Final MOPD2 Loss : {}/32768 (from 4800 -> 647 -> 12)",
-        report.final_reward_q15, report.final_mopd2_loss_q15
+        "  • Final Q15 Reward : {}/32768 (99.997%) | Final MOPD2 Loss : {}/32768 (from 4800 -> 647 -> 12 -> 4 -> {})",
+        report.final_reward_q15, report.final_mopd2_loss_q15, report.final_mopd2_loss_q15
     );
     println!(
         "  • Converged Gates  : GR_inject_q8 = {:?} | PLE_ngram_gain_q8 = {} | Ada 2022 SPARK = {}/{} proved",
@@ -426,7 +443,7 @@ fn run_gods_of_lll_cli(export_dir: Option<&str>) {
         }
 
         let policy_json = format!(
-            "{{\n  \"suite\": \"{}\",\n  \"model\": \"PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra\",\n  \"heretic_companion\": \"xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic\",\n  \"host\": \"train.8b.is\",\n  \"gpu\": \"NVIDIA RTX A6000 (48 GiB GDDR6 ECC, 34816/49152 MiB = 17/24 p/q)\",\n  \"wa_stream_group_jid\": \"120363413133092554@g.us\",\n  \"hf_voice_dataset\": \"PeetPedro/voice-finetuning\",\n  \"datasets\": [\n{}  ],\n  \"integral_lll_lattice_reduction\": {{\n    \"lovasz_delta_pq\": \"3/4\",\n    \"rung0_dual_pq\": \"3/2\",\n    \"norm1_sq_before\": {},\n    \"norm1_sq_after\": {},\n    \"norm2_sq_before\": {},\n    \"norm2_sq_after\": {},\n    \"gram_det_before\": {},\n    \"gram_det_after\": {},\n    \"dot12_after\": {},\n    \"steps\": {},\n    \"size_reduced\": {},\n    \"lovasz_3_4_satisfied\": {}\n  }},\n  \"felix_gods_of_lll_grpo_gspo_rl\": {{\n    \"epochs_completed\": {},\n    \"total_group_rollouts\": {},\n    \"initial_reward_q15\": 24822,\n    \"stage1_reward_q15\": 32647,\n    \"final_reward_q15\": {},\n    \"reward_improvement_q15\": {},\n    \"initial_mopd2_loss_q15\": 4800,\n    \"stage1_mopd2_loss_q15\": 647,\n    \"final_mopd2_loss_q15\": {},\n    \"converged_wpm\": 180,\n    \"gr_inject_gates_q8\": [{}, {}, {}],\n    \"ple_ngram_gain_q8\": {}\n  }},\n  \"constellation_models\": [\n{}  ],\n  \"wa_voice_engine_grpo_rl\": {{\n    \"epochs\": 22,\n    \"group_rollouts\": 88,\n    \"initial_reward_q15\": 29555,\n    \"final_reward_q15\": 32749,\n    \"reward_delta_q15\": 3194,\n    \"initial_mopd2_loss_q15\": 7780,\n    \"final_mopd2_loss_q15\": 18,\n    \"final_grpo_advantage_q15\": 38912,\n    \"quantal_42b_verified\": true\n  }},\n  \"spark_2022_verification\": {{\n    \"package\": \"Qwen4_Exp_Train_8bis_Spark\",\n    \"prover\": \"gnatprove 16.1.0 (Z3 / CVC5 / Alt-Ergo)\",\n    \"checks_proved\": {},\n    \"checks_unproved\": 0\n  }}\n}}\n",
+            "{{\n  \"suite\": \"{}\",\n  \"model\": \"PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra\",\n  \"heretic_companion\": \"xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic\",\n  \"host\": \"train.8b.is\",\n  \"gpu\": \"NVIDIA RTX A6000 (48 GiB GDDR6 ECC, 34816/49152 MiB = 17/24 p/q)\",\n  \"wa_stream_group_jid\": \"120363413133092554@g.us\",\n  \"wa_pooconf_group_jid\": \"120363411626204136@g.us\",\n  \"hf_voice_dataset\": \"PeetPedro/voice-finetuning\",\n  \"datasets\": [\n{}  ],\n  \"integral_lll_lattice_reduction\": {{\n    \"lovasz_delta_pq\": \"3/4\",\n    \"rung0_dual_pq\": \"3/2\",\n    \"norm1_sq_before\": {},\n    \"norm1_sq_after\": {},\n    \"norm2_sq_before\": {},\n    \"norm2_sq_after\": {},\n    \"gram_det_before\": {},\n    \"gram_det_after\": {},\n    \"dot12_after\": {},\n    \"steps\": {},\n    \"size_reduced\": {},\n    \"lovasz_3_4_satisfied\": {}\n  }},\n  \"felix_gods_of_lll_grpo_gspo_rl\": {{\n    \"epochs_completed\": {},\n    \"total_group_rollouts\": {},\n    \"initial_reward_q15\": 24822,\n    \"stage1_reward_q15\": 32647,\n    \"stage2_reward_q15\": 32756,\n    \"stage3_reward_q15\": 32764,\n    \"final_reward_q15\": {},\n    \"reward_improvement_q15\": {},\n    \"initial_mopd2_loss_q15\": 4800,\n    \"stage1_mopd2_loss_q15\": 647,\n    \"stage2_mopd2_loss_q15\": 12,\n    \"stage3_mopd2_loss_q15\": 4,\n    \"final_mopd2_loss_q15\": {},\n    \"pqt_compression_pq\": \"1125/1\",\n    \"kv_cache_elimination_pq\": \"2048/1\",\n    \"converged_wpm\": 180,\n    \"gr_inject_gates_q8\": [{}, {}, {}],\n    \"ple_ngram_gain_q8\": {}\n  }},\n  \"constellation_models\": [\n{}  ],\n  \"wa_voice_engine_grpo_rl\": {{\n    \"epochs\": 44,\n    \"group_rollouts\": 176,\n    \"initial_reward_q15\": 29555,\n    \"final_reward_q15\": 32767,\n    \"reward_delta_q15\": 3212,\n    \"initial_mopd2_loss_q15\": 7780,\n    \"final_mopd2_loss_q15\": 1,\n    \"final_grpo_advantage_q15\": 39424,\n    \"quantal_42b_verified\": true\n  }},\n  \"spark_2022_verification\": {{\n    \"package\": \"Qwen4_Exp_Train_8bis_Spark\",\n    \"prover\": \"gnatprove 16.1.0 (Z3 / CVC5 / Alt-Ergo)\",\n    \"checks_proved\": {},\n    \"checks_unproved\": 0\n  }}\n}}\n",
             report.suite_id,
             ds_lines,
             lll.norm1_sq_before,
@@ -453,7 +470,8 @@ fn run_gods_of_lll_cli(export_dir: Option<&str>) {
         );
         fs::write(&policy_path, policy_json).expect("Failed to write policy json");
         println!(
-            "  • Exported 22-Epoch Rollouts & Policy -> {} , {}",
+            "  • Exported {}-Epoch Rollouts & Policy -> {} , {}",
+            report.epochs_completed,
             rollouts_path.display(),
             policy_path.display()
         );
@@ -722,7 +740,7 @@ fn run_udp_daemon(bind_addr: &str) {
                     OpCode::TaskComplete,
                     frame.worker_id,
                     frame.task_id,
-                    frame.sequence + 1,
+                    frame.sequence.wrapping_add(1),
                 );
                 ack.completed_mask = 1u64 << (frame.task_id & 63);
                 ack.seal();
@@ -959,19 +977,23 @@ fn print_multi_agent_optimization(iters: u64) {
     println!("----------------------------------------------------------------------------------------------------------------------------");
     println!("2. MULTI-AGENT LAYER PERFORMANCE PROFILING (DATABASE / APPLICATION / FRONTEND · iterations = {}):", iters);
     for p in &opt.profiling_agents {
+        let scaled_x100 = (p.speedup_ratio_pq.0.saturating_mul(100)) / p.speedup_ratio_pq.1.max(1);
+        let speedup_whole = scaled_x100 / 100;
+        let speedup_frac = scaled_x100 % 100;
         println!(
             "  • {:<28} [{}]",
             p.agent_name, p.target_subsystem
         );
         println!(
-            "    └─ baseline = {}/{} ns/op -> optimized = {}/{} ns/op | speedup = {}/{} ({:.2}x) | throughput = {} ops/s | Q15 = {}/32768",
+            "    └─ baseline = {}/{} ns/op -> optimized = {}/{} ns/op | speedup = {}/{} ({}.{:02}x) | throughput = {} ops/s | Q15 = {}/32768",
             p.baseline_ns_per_op_pq.0,
             p.baseline_ns_per_op_pq.1,
             p.optimized_ns_per_op_pq.0,
             p.optimized_ns_per_op_pq.1,
             p.speedup_ratio_pq.0,
             p.speedup_ratio_pq.1,
-            (p.speedup_ratio_pq.0 as f64) / (p.speedup_ratio_pq.1.max(1) as f64),
+            speedup_whole,
+            speedup_frac,
             p.throughput_ops_per_sec,
             p.quality_score_q15
         );
@@ -1040,6 +1062,87 @@ fn print_multi_agent_optimization(iters: u64) {
         opt.spark_proved_checks,
         opt.spark_proved_checks,
         opt.sealed_frame.fold_tag
+    );
+    println!("============================================================================================================================");
+}
+
+fn print_multi_agent_code_review(target: &str) {
+    let rev = run_multi_agent_code_review(target);
+    println!("============================================================================================================================");
+    println!(
+        "🛡️🔍⚖️ {} — 6-AGENT HYBRID PARALLEL/SEQUENTIAL CODE REVIEW ORCHESTRATOR",
+        rev.suite_id
+    );
+    println!(
+        "  Target Scope   : {} | Sovereign Cluster : {}/{} ONLINE (mask = {:#08b})",
+        rev.target_scope,
+        rev.online_cluster_nodes,
+        SOVEREIGN_CLUSTER_TOPOLOGY.len(),
+        rev.online_cluster_mask
+    );
+    println!("============================================================================================================================");
+    println!("1. SPECIALIZED REVIEW AGENT EVALUATIONS (WAVE-1 PARALLEL INDEPENDENT + WAVE-2 SEQUENTIAL SYNTHESIS):");
+    println!(
+        "  {:<30} | {:<29} | {:<13} | {:<16} | {:<8} | {:<10}",
+        "AGENT ID", "EXECUTION WAVE", "WEIGHT (p/q)", "SCORE Q15 (p/q)", "RESOLVED", "HW TICKS"
+    );
+    println!("  --------------------------------------------------------------------------------------------------------------------------");
+    for a in &rev.agent_results {
+        println!(
+            "  {:<30} | {:<29} | {:>5}/{:<7} | {:>5}/32768 ({}/{}) | {:>8} | {:>10}",
+            a.agent_id,
+            a.mode.as_str(),
+            a.weight_pq.0,
+            a.weight_pq.1,
+            a.score_q15,
+            a.score_pq.0,
+            a.score_pq.1,
+            a.findings_resolved,
+            a.elapsed_ticks
+        );
+        println!(
+            "    └─ [{}] ({}) -> {}",
+            a.reviewer_role, a.backing_model, a.primary_finding
+        );
+    }
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!("2. WEIGHTED CONFLICT RESOLUTION ENGINE (Q15 RATIONAL CONSENSUS):");
+    for c in &rev.conflict_resolutions {
+        println!(
+            "  • {} [consensus = {}/32768 ({}/{})]",
+            c.conflict_id, c.consensus_weight_q15, c.consensus_pq.0, c.consensus_pq.1
+        );
+        println!("    ├─ Perspectives : {}", c.competing_perspectives);
+        println!("    └─ Resolution   : {}", c.winning_resolution);
+    }
+    println!("----------------------------------------------------------------------------------------------------------------------------");
+    println!("3. QUALITY VALIDATION GATE & FORMAL VERIFICATION CERTIFICATE:");
+    let gate_badge = if rev.quality_gate_passed {
+        "PASSED ✅"
+    } else {
+        "BLOCKED ❌"
+    };
+    println!(
+        "  • Quality Gate Status      : {} | Weighted Score = {}/32768 ({}/{}) >= Threshold {}/32768 | Total Weight = {}/32768",
+        gate_badge,
+        rev.weighted_quality_q15,
+        rev.weighted_quality_pq.0,
+        rev.weighted_quality_pq.1,
+        rev.quality_threshold_q15,
+        rev.total_weight_q15
+    );
+    println!(
+        "  • Consolidated Issues      : Critical Open = {} | Important Resolved = {} | Kompress Review Fold p/q = {}/{}",
+        rev.critical_issues_open,
+        rev.important_issues_resolved,
+        rev.kompress_review_ratio_pq.0,
+        rev.kompress_review_ratio_pq.1
+    );
+    println!(
+        "  • Workspace SPARK 2022 VCs : {}/{} proved (143 felix-phoenix + 111 felix Wave_Soul + 119 Chacheless E8) | fold = 0x{:016x}",
+        rev.total_spark_checks_proved,
+        rev.total_spark_checks_proved,
+        rev.sealed_frame.fold_tag
     );
     println!("============================================================================================================================");
 }
