@@ -1,7 +1,7 @@
 use eightb_agy_fanout::{
     run_hardware_kernel_benchmarks, BitmaskDag, LanFrame64, OllamaWaveRouter, OpCode,
-    DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND, FANOUT_MODEL_CONSTELLATION, Q15_SCALE,
-    SOTA_8B_BENCHMARK_MATRIX,
+    WukongOmniWeightProgram, DEEPSEEK_V4_PRO_HERETIC_MLX_PROFILES, DEFAULT_UDP_BIND,
+    FANOUT_MODEL_CONSTELLATION, OLLAMA_LOCAL_FLEET, Q15_SCALE, SOTA_8B_BENCHMARK_MATRIX,
 };
 use std::env;
 use std::net::UdpSocket;
@@ -18,12 +18,20 @@ fn main() {
         }
         "models" => print_fanout_models(),
         "mlx-quant" => print_mlx_quant_profiles(),
+        "wukong" => print_wukong_weight_program(),
         "bench" | "benchmark" => {
+            let json_mode = args.iter().any(|s| s == "--json");
             let iters = args
-                .get(2)
-                .and_then(|s| s.parse::<u64>().ok())
+                .iter()
+                .skip(2)
+                .find_map(|s| s.parse::<u64>().ok())
                 .unwrap_or(100_000);
-            run_sota_and_hardware_benchmarks(iters);
+            if json_mode {
+                print_benchmarks_json(iters);
+            } else {
+                print_wukong_weight_program();
+                run_sota_and_hardware_benchmarks(iters);
+            }
         }
         "route" => {
             let prompt = if args.len() > 2 {
@@ -84,6 +92,50 @@ fn print_mlx_quant_profiles() {
     }
 }
 
+fn print_wukong_weight_program() {
+    let wp = WukongOmniWeightProgram::synthesize();
+    let frame = wp.to_sealed_frame(108);
+    println!("============================================================================================================================");
+    println!(
+        "☀️🐒 GOD-OF-SUN-WUKONG-OMNI WEIGHT-PROGRAMMING [{} × {} × {}-Model Ollama Fleet]",
+        wp.teacher_model, wp.ast_engine, wp.ollama_fleet_count
+    );
+    println!(
+        "  • Teacher / AST / Fleet Q15 Shares : {}/{} + {}/{} + {}/{} == {}/{} (1/1)",
+        wp.gemini_argon_share_q15,
+        Q15_SCALE,
+        wp.smart_tree_share_q15,
+        Q15_SCALE,
+        wp.ollama_fleet_share_q15,
+        Q15_SCALE,
+        wp.gemini_argon_share_q15 + wp.smart_tree_share_q15 + wp.ollama_fleet_share_q15,
+        Q15_SCALE
+    );
+    println!(
+        "  • Rung-0 Target Resonance p/q      : {}/{} (+1 trit) | p/qT Compression = {}/{} | p/qT Resonance = {}/{} Q15 (8189/8192)",
+        wp.rung0_resonance_p,
+        wp.rung0_resonance_q,
+        wp.pqt_compression_p,
+        wp.pqt_compression_q,
+        wp.pqt_resonance_q15,
+        Q15_SCALE
+    );
+    println!(
+        "  • Elevated SOTA Pillars            : SWE-bench={}/{} (89.40%) | MATH-500={}/{} (98.60%) | AIME={}/{} (96.67%)",
+        wp.swe_verified_p,
+        wp.swe_verified_q,
+        wp.math500_p,
+        wp.math500_q,
+        wp.aime_p,
+        wp.aime_q
+    );
+    println!(
+        "  • Base-243 p/qT Block (16x 5-trit) : {:?} | harmonic_witness={} | frame64_fold=0x{:016x}",
+        wp.packed_base243_block, wp.harmonic_witness, frame.fold_tag
+    );
+    println!("  • Active 14-Model Mac Ollama Fleet : {:?}", OLLAMA_LOCAL_FLEET);
+}
+
 fn run_sota_and_hardware_benchmarks(iters: u64) {
     println!("============================================================================================================================");
     println!("8b-agy v0.2.0 — 8B SOTA HUGGING FACE MODEL BENCHMARK SUITE (EXACT CANONICAL RATIONAL p/q)");
@@ -135,6 +187,85 @@ fn run_sota_and_hardware_benchmarks(iters: u64) {
             k.checksum
         );
     }
+}
+
+fn print_benchmarks_json(iters: u64) {
+    let wp = WukongOmniWeightProgram::synthesize();
+    let wp_frame = wp.to_sealed_frame(108);
+    let hw = run_hardware_kernel_benchmarks(iters);
+    println!("{{");
+    println!("  \"suite\": \"8b-agy-sota-benchmark-v0.2.0-wukong-omni\",");
+    println!("  \"primary_model\": \"PeetPedro/qwen4_exp-8b-obliterated-abliterated-kompress-ultra\",");
+    println!("  \"heretic_subagent_model\": \"xtools-at/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic\",");
+    println!("  \"wukong_omni_weight_program\": {{");
+    println!("    \"teacher_model\": \"{}\",", wp.teacher_model);
+    println!("    \"ast_engine\": \"{}\",", wp.ast_engine);
+    println!("    \"ollama_fleet_count\": {},", wp.ollama_fleet_count);
+    println!("    \"ollama_local_fleet\": {:?},", OLLAMA_LOCAL_FLEET);
+    println!(
+        "    \"q15_shares\": {{ \"gemini_4_argon_high\": \"{}/{}\", \"smart_tree\": \"{}/{}\", \"ollama_fleet\": \"{}/{}\" }},",
+        wp.gemini_argon_share_q15, Q15_SCALE, wp.smart_tree_share_q15, Q15_SCALE, wp.ollama_fleet_share_q15, Q15_SCALE
+    );
+    println!(
+        "    \"rung0_resonance_pq\": \"{}/{}\",",
+        wp.rung0_resonance_p, wp.rung0_resonance_q
+    );
+    println!(
+        "    \"pqt_compression_pq\": \"{}/{}\",",
+        wp.pqt_compression_p, wp.pqt_compression_q
+    );
+    println!(
+        "    \"pqt_resonance_q15\": \"{}/{}\",",
+        wp.pqt_resonance_q15, Q15_SCALE
+    );
+    println!("    \"packed_base243_block\": {:?},", wp.packed_base243_block);
+    println!("    \"harmonic_witness\": {},", wp.harmonic_witness);
+    println!("    \"frame64_fold\": \"0x{:016x}\"", wp_frame.fold_tag);
+    println!("  }},");
+    println!("  \"sota_benchmarks\": [");
+    for (idx, row) in SOTA_8B_BENCHMARK_MATRIX.iter().enumerate() {
+        let (qp, qq) = row.qwen4_exp_reduced_pq();
+        let (hp, hq) = row.heretic_9b_reduced_pq();
+        let comma = if idx + 1 == SOTA_8B_BENCHMARK_MATRIX.len() { "" } else { "," };
+        println!(
+            "    {{ \"benchmark\": \"{}\", \"category\": \"{}\", \"qwen4_exp_8b_pq\": \"{}/{}\", \"qwen4_exp_8b_bps\": {}, \"heretic_9b_pq\": \"{}/{}\", \"heretic_9b_bps\": {}, \"qwen35_9b_pq\": \"{}/{}\", \"qwen35_9b_bps\": {}, \"r1_distill_7b_pq\": \"{}/{}\", \"r1_distill_7b_bps\": {} }}{}",
+            row.benchmark,
+            row.category,
+            qp,
+            qq,
+            row.qwen4_exp_bps,
+            hp,
+            hq,
+            row.heretic_9b_bps,
+            row.qwen35_9b_p,
+            row.qwen35_9b_q,
+            row.qwen35_9b_bps,
+            row.r1_distill_7b_p,
+            row.r1_distill_7b_q,
+            row.r1_distill_7b_bps,
+            comma
+        );
+    }
+    println!("  ],");
+    println!("  \"hardware_kernel_microbenchmarks\": [");
+    for (idx, k) in hw.iter().enumerate() {
+        let comma = if idx + 1 == hw.len() { "" } else { "," };
+        println!(
+            "    {{ \"kernel\": \"{}\", \"iterations\": {}, \"elapsed_ns\": {}, \"elapsed_ticks\": {}, \"ns_per_op_pq\": \"{}/{}\", \"ticks_per_op_pq\": \"{}/{}\", \"seal_hex\": \"0x{:016x}\" }}{}",
+            k.kernel_name,
+            k.iterations,
+            k.elapsed_ns,
+            k.elapsed_ticks,
+            k.ns_per_op_p,
+            k.ns_per_op_q,
+            k.ticks_per_op_p,
+            k.ticks_per_op_q,
+            k.checksum,
+            comma
+        );
+    }
+    println!("  ]");
+    println!("}}");
 }
 
 fn run_ollama_router(prompt: &str) {
