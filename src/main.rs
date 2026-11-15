@@ -1161,7 +1161,7 @@ fn print_wici_wireless_gpu_moe(steps: u32, json_mode: bool) {
     let rep = run_wici_wireless_gpu_moe_fanout(steps);
     if json_mode {
         println!(
-            "{{\"suite_id\":\"{}\",\"float_count\":0,\"steps\":{},\"dag_waves_dispatched\":{},\"local_gpu_vram_mib\":{},\"local_host_ram_mib\":{},\"tforce_nvme_vault_mib\":{},\"hetzner_a6000_vram_mib\":{},\"hetzner_a6000_ram_mib\":{},\"deepseek_671b_b158_mib\":{},\"naive_driver_rtts_per_step\":{},\"batched_rtts_per_step\":{},\"trace_replay_rtts_per_step\":{},\"rtt_savings_pq\":\"{}/{}\",\"qat_subwindow_reuse_pq\":\"{}/{}\",\"training_speedup_pq\":\"{}/{}\",\"frame64_fold_hex\":\"0x{:016x}\"}}",
+            "{{\"suite_id\":\"{}\",\"simulated\":true,\"float_count\":0,\"steps\":{},\"dag_waves_dispatched\":{},\"local_gpu_vram_mib\":{},\"local_host_ram_mib\":{},\"tforce_nvme_vault_mib\":{},\"hetzner_a6000_vram_mib\":{},\"hetzner_a6000_ram_mib\":{},\"deepseek_671b_b158_mib\":{},\"naive_driver_rtts_per_step\":{},\"batched_rtts_per_step\":{},\"trace_replay_rtts_per_step\":{},\"rtt_savings_pq\":\"{}/{}\",\"qat_subwindow_reuse_pq\":\"{}/{}\",\"training_speedup_pq\":\"{}/{}\",\"frame64_fold_hex\":\"0x{:016x}\"}}",
             rep.suite_id,
             steps.max(2),
             rep.dag_waves_dispatched,
@@ -1184,6 +1184,7 @@ fn print_wici_wireless_gpu_moe(steps: u32, json_mode: bool) {
         );
         return;
     }
+    println!("SIMULATED SCENARIO ONLY: capacities and speedups are assumptions, not live GPU measurements.");
     println!("============================================================================================================================");
     println!(
         "📡🧠⚡ {} — 3-WAVE WICI WIRELESS GPU & DEEPSEEK-671B MOE TRACE-REPLAY FAN-OUT",
