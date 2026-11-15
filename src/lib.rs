@@ -3568,6 +3568,8 @@ pub fn run_multi_agent_code_review(target: &str) -> MultiAgentReviewReport {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WiciWirelessMoeFanoutReport {
     pub suite_id: &'static str,
+    /// This report models a scenario; it does not measure live GPU execution.
+    pub simulated: bool,
     pub local_gpu_vram_mib: u32,
     pub local_host_ram_mib: u32,
     pub tforce_nvme_vault_mib: u32,
@@ -3590,6 +3592,7 @@ pub struct WiciWirelessMoeFanoutReport {
 /// - **Wave 3 (`worker 5`)**: Single-RTT `64B@0x62` cyclic trace replay across 61 DeepSeek-671B MoE layers.
 pub fn run_wici_wireless_gpu_moe_fanout(steps: u32) -> WiciWirelessMoeFanoutReport {
     let eff_steps = steps.max(2);
+    // Scenario-only: the DAG is marked complete without dispatching GPU work.
     let mut dag = BitmaskDag::new();
     dag.add_task(0, 0); // Wave 1: Tensor/Expert BLAKE3 cache check
     dag.add_task(1, 1 << 0); // Wave 2: Speculative driver pattern batcher
@@ -3642,6 +3645,7 @@ pub fn run_wici_wireless_gpu_moe_fanout(steps: u32) -> WiciWirelessMoeFanoutRepo
 
     WiciWirelessMoeFanoutReport {
         suite_id: "8B-AGY-WICI-WIRELESS-GPU-MOE-v0.9.0",
+        simulated: true,
         local_gpu_vram_mib: 24_564,
         local_host_ram_mib: 128_000,
         tforce_nvme_vault_mib: 1_843_200,
@@ -4107,6 +4111,7 @@ mod tests {
         let rep = run_wici_wireless_gpu_moe_fanout(32);
         assert_eq!(rep.suite_id, "8B-AGY-WICI-WIRELESS-GPU-MOE-v0.9.0");
         assert_eq!(rep.dag_waves_dispatched, 3);
+        assert!(rep.simulated, "scenario must never be presented as measured GPU execution");
         assert_eq!(rep.deepseek_671b_b158_mib, 132_941);
         assert_eq!(rep.qat_subwindow_reuse_pq, (31, 32));
         // Local 4090 (24,564 MiB VRAM + 128,000 MiB RAM = 152,564 MiB) > 132,941 MiB!
