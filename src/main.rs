@@ -145,7 +145,7 @@ fn print_help() {
     println!();
     println!("Commands / Installed `8b-agy*` Binaries:");
     println!("  review    (8b-agy-review)    Run 6-Agent Hybrid Code Review Orchestrator (Wave-1 Par + Wave-2 Seq + SPARK)");
-    println!("  wici      (8b-agy-wici)      Run 3-Wave WiCi Wireless GPU & DeepSeek-671B MoE Trace-Replay Fan-Out (RTX 4090 + A6000)");
+    println!("  wici      (8b-agy-wici)      Simulate 3-Wave WiCi Wireless GPU & DeepSeek-671B MoE Trace-Replay Fan-Out (RTX 4090 + A6000)");
     println!("  optimize  (8b-agy-optimize)  Run 8-Pillar Multi-Agent Optimization Toolkit (Profiler + Memo + Cost + Wave)");
     println!("  demo      (8b-agy-fanout)    Run 3-Wave BitmaskDag fan-out demo with Ollama Wave Router");
     println!("  row       (8b-agy-row)       Run Peloton Row USB-C + 8B-is-engine + ayeOS Zero-Subscription ($0/mo) E2E");
@@ -1200,7 +1200,7 @@ fn print_wici_wireless_gpu_moe(steps: u32, json_mode: bool) {
         rep.hetzner_a6000_vram_mib, rep.hetzner_a6000_ram_mib
     );
     println!(
-        "  • DeepSeek-671B MoE B1·58 : {} MiB (5 trits/byte Base-243 SPQT · fits 100% in VRAM + Host RAM on BOTH nodes!)",
+        "  • DeepSeek-671B packed weights: {} MiB (5 trits/byte; runtime overhead excluded)",
         rep.deepseek_671b_b158_mib
     );
     println!(
@@ -1208,7 +1208,7 @@ fn print_wici_wireless_gpu_moe(steps: u32, json_mode: bool) {
         rep.naive_driver_rtts_per_step, rep.batched_rtts_per_step, rep.trace_replay_rtts_per_step
     );
     println!(
-        "  • Exact Rational Gains    : RTT Savings = {}/{} | QAT 4096B Sub-Window Reuse = {}/{} | Training Speedup = {}/{}",
+        "  • Exact Rational Gains    : RTT Savings = {}/{} | QAT 4096B Sub-Window Reuse = {}/{} | Modeled RTT Ratio = {}/{}",
         rep.rtt_savings_pq.0,
         rep.rtt_savings_pq.1,
         rep.qat_subwindow_reuse_pq.0,

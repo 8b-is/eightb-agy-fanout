@@ -3586,7 +3586,7 @@ pub struct WiciWirelessMoeFanoutReport {
     pub sealed_frame: LanFrame64,
 }
 
-/// Executes a 3-Wave `BitmaskDag` WiCi Wireless GPU + DeepSeek-671B MoE Trace-Replay Fan-Out:
+/// Simulates a 3-Wave `BitmaskDag` WiCi Wireless GPU + DeepSeek-671B MoE scenario:
 /// - **Wave 1 (`worker 0`)**: Content-addressed tensor & expert cache check on `T-FORCE TM8FPP002T` NVMe (`1.8 TiB`) / Hetzner `720 GiB` RAM.
 /// - **Wave 2 (`workers 1..4`)**: Parallel speculative function batching (`cuMemCpyHToDAsync -> cuLaunchKernel -> cuStreamSynchronize`) + `31/32` QAT 4096B sub-window delta sync.
 /// - **Wave 3 (`worker 5`)**: Single-RTT `64B@0x62` cyclic trace replay across 61 DeepSeek-671B MoE layers.
@@ -3611,8 +3611,9 @@ pub fn run_wici_wireless_gpu_moe_fanout(steps: u32) -> WiciWirelessMoeFanoutRepo
         waves = waves.saturating_add(1);
     }
 
-    // DeepSeek-671B MoE at base-243 ternary (1585/1000 bits/trit): 671 * 125 * 1585 / 1000 = 132,941 MiB
-    let deepseek_671b_b158_mib: u32 = 132_941;
+    // Five trits per byte: ceil(671 billion / 5 / 2^20) MiB.
+    // Weight storage only; excludes scales, activations and runtime overhead.
+    let deepseek_671b_b158_mib: u32 = 127_984;
     let naive_driver_rtts_per_step: u32 = 61 * 28; // 1,708 driver calls per QAT forward+backward step
     let batched_rtts_per_step: u32 = 61 * 2; // 122 batched RTTs
     let trace_replay_rtts_per_step: u32 = 1; // 1 64B@0x62 trigger frame after step-0 trace lock!
@@ -4112,11 +4113,11 @@ mod tests {
         assert_eq!(rep.suite_id, "8B-AGY-WICI-WIRELESS-GPU-MOE-v0.9.0");
         assert_eq!(rep.dag_waves_dispatched, 3);
         assert!(rep.simulated, "scenario must never be presented as measured GPU execution");
-        assert_eq!(rep.deepseek_671b_b158_mib, 132_941);
+        assert_eq!(rep.deepseek_671b_b158_mib, 127_984);
         assert_eq!(rep.qat_subwindow_reuse_pq, (31, 32));
-        // Local 4090 (24,564 MiB VRAM + 128,000 MiB RAM = 152,564 MiB) > 132,941 MiB!
+        // Local 4090 (24,564 MiB VRAM + 128,000 MiB RAM = 152,564 MiB) > 127,984 MiB!
         assert!(rep.local_gpu_vram_mib + rep.local_host_ram_mib > rep.deepseek_671b_b158_mib);
-        // Hetzner A6000 (49,140 MiB VRAM + 737,280 MiB RAM = 786,420 MiB) > 132,941 MiB!
+        // Hetzner A6000 (49,140 MiB VRAM + 737,280 MiB RAM = 786,420 MiB) > 127,984 MiB!
         assert!(rep.hetzner_a6000_vram_mib + rep.hetzner_a6000_ram_mib > rep.deepseek_671b_b158_mib);
         let verified = LanFrame64::try_from_bytes(rep.sealed_frame.as_bytes())
             .expect("valid WiCi Wireless MoE LanFrame64");
